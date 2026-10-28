@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Presentation Listening Log</title>
+<style>
+  :root{--ink:#14292e;--teal:#12696a;--paper:#fbfaf6;--line:#c9d1d3;--soft:#f1efe7;--red:#b8381f}
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9ecec;color:var(--ink);font:16px/1.45 Calibri,"Segoe UI",system-ui,sans-serif}
+  .sheet{max-width:1100px;margin:20px auto;background:var(--paper);padding:28px 32px 20px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+  h1{margin:0;font:700 28px Cambria,Georgia,serif}
+  .sub{color:#5d6f73;margin:2px 0 14px}
+  h2{font:700 19px Cambria,Georgia,serif;margin:20px 0 6px;color:var(--teal)}
+  .meta{display:grid;grid-template-columns:1fr 220px;gap:12px}
+  label.f{display:block;font-size:13px;font-weight:700;color:#5d6f73;margin-bottom:2px}
+  input[type=text],textarea{width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;padding:7px 9px;font:inherit;color:var(--ink)}
+  textarea{resize:vertical;min-height:70px}
+  .howto{background:var(--soft);border-radius:8px;padding:12px 16px}
+  .howto ol{margin:6px 0 0;padding-left:22px}
+  .howto li{margin:3px 0}
+  .tablewrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:900px}
+  th{background:var(--teal);color:#fff;text-align:left;font-size:14px;padding:8px;border:1px solid var(--teal);vertical-align:bottom}
+  td{border:1px solid var(--line);padding:4px;vertical-align:top}
+  td textarea{border:none;min-height:74px;padding:4px 5px;font-size:15px;overflow:hidden;resize:none}
+  td.g{width:9%}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+  button{font:700 15px inherit;font-family:inherit;border:none;border-radius:8px;padding:10px 16px;cursor:pointer}
+  .primary{background:var(--teal);color:#fff}
+  .ghost{background:#fff;border:1px solid var(--teal);color:var(--teal)}
+  .foot{color:#5d6f73;font-size:13px;text-align:center;margin-top:12px}
+  .note{font-size:13px;color:#5d6f73}
+  @media(max-width:640px){.sheet{margin:0;border-radius:0;padding:18px 14px}.meta{grid-template-columns:1fr}}
+  @media print{body{background:#fff}.sheet{box-shadow:none;margin:0;max-width:none}.btns{display:none}}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <h1>Group Presentation Listening Log</h1>
+  <p class="sub">Audience Task — Marketing Pitch Presentations</p>
+
+  <div class="meta">
+    <div><label class="f" for="grp">Group Name / Number</label><input type="text" id="grp"></div>
+    <div><label class="f" for="dt">Date</label><input type="text" id="dt" placeholder="e.g. 28 Oct"></div>
+  </div>
+
+  <h2>How to use this log</h2>
+  <div class="howto">
+    Your group is the audience. Listen actively and record <b>keywords or short phrases</b>. Do not write a full summary.
+    <ol>
+      <li><b>Product &amp; Audience:</b> What did they sell, and who is it for?</li>
+      <li><b>Strategies:</b> What two marketing actions did they propose?</li>
+      <li><b>Message &amp; Slogan:</b> What was their key message? What was the slogan?</li>
+      <li><b>Persuasion:</b> Which line, device or technique worked best on you?</li>
+      <li><b>Would you buy?</b> Yes, maybe or not yet, and one reason.</li>
+    </ol>
+  </div>
+
+  <h2>Presentation Notes</h2>
+  <p class="note">Complete one row for each presenting group.</p>
+  <div class="tablewrap">
+    <table id="tbl">
+      <thead><tr>
+        <th>Group</th><th>Product &amp; Audience</th><th>Two Strategies</th><th>Key Message / Slogan</th><th>Persuasion That Worked</th><th>Would You Buy? Why?</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="btns"><button class="ghost" id="add" type="button">+ Add row</button></div>
+
+  <h2>Final Group Reflection</h2>
+  <label class="f" for="r1">Which pitch persuaded your group the most? Why?</label>
+  <textarea id="r1"></textarea>
+  <label class="f" for="r2" style="margin-top:10px">What persuasive pattern did you notice across several pitches?</label>
+  <textarea id="r2"></textarea>
+
+  <div class="btns">
+    <button class="primary" id="pdf" type="button">Download as PDF</button>
+    <button class="ghost" id="clr" type="button">Clear all</button>
+  </div>
+  <p class="foot">One copy per group • A4 landscape • safe margins</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function(){
+  var KEY="listening-log-pitches-v1", COLS=6, ROWS=6;
+  var tb=document.getElementById("tb");
+  function store(get,v){try{return get?localStorage.getItem(KEY):localStorage.setItem(KEY,v)}catch(e){return null}}
+  function grow(t){t.style.height="auto";t.style.height=Math.max(74,t.scrollHeight+2)+"px"}
+  function growAll(){[].forEach.call(tb.querySelectorAll("textarea"),grow)}
+  window.addEventListener("resize",growAll);
+  function addRow(vals){
+    var tr=document.createElement("tr");
+    for(var i=0;i<COLS;i++){
+      var td=document.createElement("td"); if(i===0) td.className="g";
+      var t=document.createElement("textarea"); t.value=(vals&&vals[i])||""; t.addEventListener("input",function(){grow(t);requestAnimationFrame(growAll);save()});setTimeout(function(){grow(t)},0);
+      td.appendChild(t); tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+  function collect(){
+    var rows=[].map.call(tb.rows,function(r){return [].map.call(r.querySelectorAll("textarea"),function(t){return t.value})});
+    return {grp:grp.value,dt:dt.value,rows:rows,r1:r1.value,r2:r2.value};
+  }
+  function save(){store(false,JSON.stringify(collect()))}
+  function load(){
+    var s=store(true), d=null;
+    try{d=s?JSON.parse(s):null}catch(e){}
+    if(d){grp.value=d.grp||"";dt.value=d.dt||"";r1.value=d.r1||"";r2.value=d.r2||"";(d.rows||[]).forEach(addRow)}
+    while(tb.rows.length<ROWS) addRow();
+  }
+  ["grp","dt","r1","r2"].forEach(function(id){document.getElementById(id).addEventListener("input",save)});
+  document.getElementById("add").onclick=function(){addRow();save()};
+  document.getElementById("clr").onclick=function(){
+    if(!confirm("Clear everything on this log?")) return;
+    ["grp","dt","r1","r2"].forEach(function(id){document.getElementById(id).value=""});
+    tb.innerHTML=""; for(var i=0;i<ROWS;i++) addRow(); save();
+  };
+
+  document.getElementById("pdf").onclick=function(){
+    if(!window.jspdf){ if(confirm("The PDF tool did not load (no internet?). Use the print dialog and choose Save as PDF instead?")) window.print(); return; }
+    var doc=new window.jspdf.jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    var d=collect(), M=12, PW=297, PH=210, W=PW-2*M, y=M;
+    var heads=["Group","Product & Audience","Two Strategies","Key Message / Slogan","Persuasion That Worked","Would You Buy? Why?"];
+    var widths=[22,48,56,46,52,49]; // sums to 273
+    function title(){
+      doc.setFont("helvetica","bold");doc.setFontSize(17);doc.setTextColor(20,41,46);doc.text("Group Presentation Listening Log",M,y+5);
+      doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(93,111,115);doc.text("Audience Task - Marketing Pitch Presentations",M,y+11);
+      doc.setTextColor(20,41,46);doc.setFontSize(11);
+      doc.text("Group: "+(d.grp||"__________"),M,y+19); doc.text("Date: "+(d.dt||"__________"),M+120,y+19);
+      y+=25;
+    }
+    function head(){
+      var x=M; doc.setFillColor(18,105,106); doc.rect(M,y,W,8,"F");
+      doc.setFont("helvetica","bold");doc.setFontSize(9);doc.setTextColor(255,255,255);
+      heads.forEach(function(h,i){doc.text(h,x+1.5,y+5.3);x+=widths[i]}); y+=8; doc.setTextColor(20,41,46);
+    }
+    title(); head();
+    doc.setFont("helvetica","normal");doc.setFontSize(9.5);
+    var rows=d.rows.filter(function(r){return r.some(function(c){return c.trim()})});
+    if(!rows.length) rows=[["","","","","",""],["","","","","",""],["","","","","",""]];
+    rows.forEach(function(r){
+      var lines=r.map(function(c,i){return doc.splitTextToSize(c,widths[i]-3)});
+      var n=Math.max(4,Math.max.apply(null,lines.map(function(l){return l.length}))), h=n*4.2+3;
+      if(y+h>PH-M-4){doc.addPage();y=M;head();doc.setFont("helvetica","normal");doc.setFontSize(9.5)}
+      var x=M; doc.setDrawColor(190,198,200);
+      for(var i=0;i<COLS;i++){doc.rect(x,y,widths[i],h);doc.text(lines[i],x+1.5,y+5);x+=widths[i]}
+      y+=h;
+    });
+    function box(label,txt){
+      var l=doc.splitTextToSize(txt||"",W-4), h=Math.max(14,l.length*4.4+10);
+      if(y+h+8>PH-M){doc.addPage();y=M}
+      y+=5;doc.setFont("helvetica","bold");doc.setFontSize(10);doc.text(label,M,y);y+=2;
+      doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setDrawColor(190,198,200);doc.rect(M,y,W,h);doc.text(l,M+2,y+5);y+=h;
+    }
+    y+=2;
+    box("Which pitch persuaded your group the most? Why?",d.r1);
+    box("What persuasive pattern did you notice across several pitches?",d.r2);
+    var pages=doc.getNumberOfPages();
+    for(var p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(120,130,133);doc.text("Page "+p+" of "+pages,PW-M,PH-5,{align:"right"})}
+    doc.save("Listening_Log"+(d.grp?"_"+d.grp.replace(/[^A-Za-z0-9]+/g,"_"):"")+".pdf");
+  };
+  load();
+})();
+</script>
+</body>
+</html>
